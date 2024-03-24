@@ -7,6 +7,7 @@ from starkware.starknet.common.syscalls import get_block_timestamp, get_caller_a
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.math import assert_le, assert_lt, assert_nn_le, unsigned_div_rem
 from openzeppelin.token.erc20.IERC20 import IERC20
+from contracts.organization import Organization
 
 // Define constants
 const WAFFLE_TOKEN_ADDRESS = 0x123456789abcdef;
@@ -35,6 +36,11 @@ func user_entries(user_address: felt, raffle_id: felt) -> (entries: felt) {
 @storage_var
 func raffle_count() -> (count: felt) {
     // Stores the total count of raffles
+}
+
+@storage_var
+func organization_address() -> (address: felt) {
+    // Stores the address of the Organization contract
 }
 
 // Define events
@@ -130,6 +136,12 @@ func end_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
         // Transfer the raffle item to the winner
         // Implement the logic to transfer the item to the winner
         RaffleEnded.emit(raffle_id, winner);
+
+        // Calculate and transfer the fee to the organization
+        let (organization) = organization_address.read();
+        let (fee_percentage) = Organization.get_fee_percentage(organization);
+        let fee_amount = (raffle.total_amount * fee_percentage) / 100;
+        IERC20.transfer(WAFFLE_TOKEN_ADDRESS, organization, fee_amount);
     } else {
         // Refund the participants if the target amount is not reached
         refund_participants(raffle_id);
@@ -139,6 +151,18 @@ func end_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
         raffle_id,
         Raffle(raffle.item, raffle.total_entries, raffle.total_amount, raffle.target_amount, raffle.end_timestamp, 0)
     );
+    return ();
+}
+
+@external
+func set_organization_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    address: felt
+) {
+    // Sets the address of the Organization contract
+    // Only admin can set the organization address
+    let (caller) = get_caller_address();
+    assert_only_admin(caller);
+    organization_address.write(address);
     return ();
 }
 
