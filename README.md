@@ -5,7 +5,7 @@
   <br>
   Waffle Raffle 🧇
   <br>
-  <h5 href="https://twitter.com/wafflesweep" align="center">TWITTER</h4>
+  <a href="https://twitter.com/wafflesweep" align="center">TWITTER</h4>
 
 </h1>
 
