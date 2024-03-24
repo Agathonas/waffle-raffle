@@ -15,46 +15,47 @@ from openzeppelin.token.erc20.IERC20 import IERC20
 
 // Define constants
 const WAFFLE_TOKEN_ADDRESS = 0x123456789abcdef;
-const ENTRY_PRICE_IN_USD = 1;
 
 // Define the Raffle struct
 struct Raffle {
-    item: felt,
-    total_entries: felt,
-    total_amount: felt,
-    target_amount: felt,
-    end_timestamp: felt,
-    is_active: felt,
+    item: felt,  // The item being raffled
+    total_entries: felt,  // Total number of entries in the raffle
+    total_amount: felt,  // Total amount of $WAFFLE tokens collected
+    target_amount: felt,  // Target amount of $WAFFLE tokens required for the raffle to be successful
+    end_timestamp: felt,  // Timestamp when the raffle ends
+    is_active: felt,  // Indicates if the raffle is active (1) or closed (0)
 }
 
 // Define storage variables
 @storage_var
 func raffles(raffle_id: felt) -> (raffle: Raffle) {
+    // Stores the raffle details for each raffle ID
 }
 
 @storage_var
 func user_entries(user_address: felt, raffle_id: felt) -> (entries: felt) {
+    // Stores the number of entries for each user in a specific raffle
 }
 
 @storage_var
 func raffle_count() -> (count: felt) {
-}
-
-@storage_var
-func waffle_token_price() -> (price: felt) {
+    // Stores the total count of raffles
 }
 
 // Define events
 @event
 func RaffleCreated(raffle_id: felt, item: felt, target_amount: felt, end_timestamp: felt) {
+    // Emitted when a new raffle is created
 }
 
 @event
 func RaffleEntered(user_address: felt, raffle_id: felt, entries: felt) {
+    // Emitted when a user enters a raffle
 }
 
 @event
 func RaffleEnded(raffle_id: felt, winner: felt) {
+    // Emitted when a raffle ends and a winner is selected
 }
 
 // External functions
@@ -63,6 +64,8 @@ func RaffleEnded(raffle_id: felt, winner: felt) {
 func create_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     item: felt, target_amount: felt, duration: felt
 ) {
+    // Creates a new raffle
+    // Only admin can create a raffle
     let (caller) = get_caller_address();
     assert_only_admin(caller);
 
@@ -78,12 +81,12 @@ func create_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
 func enter_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     raffle_id: felt, entries: felt
 ) {
+    // Allows users to enter a raffle by purchasing entries with $WAFFLE tokens
     let (raffle) = raffles.read(raffle_id);
-    assert raffle.is_active = 1;
-    assert_le(get_block_timestamp(), raffle.end_timestamp);
+    assert raffle.is_active = 1;  // Ensure the raffle is active
+    assert_le(get_block_timestamp(), raffle.end_timestamp);  // Ensure the raffle hasn't ended
 
-    let (waffle_price) = waffle_token_price.read();
-    let entry_cost = ENTRY_PRICE_IN_USD * entries * waffle_price;
+    let entry_cost = entries;  // Each entry costs 1 $WAFFLE token
 
     let (caller) = get_caller_address();
 
@@ -117,12 +120,14 @@ func enter_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
 
 @external
 func end_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(raffle_id: felt) {
+    // Ends a raffle and selects a winner if the target amount is reached
+    // Only admin can end a raffle
     let (caller) = get_caller_address();
     assert_only_admin(caller);
 
     let (raffle) = raffles.read(raffle_id);
-    assert raffle.is_active = 1;
-    assert_le(raffle.end_timestamp, get_block_timestamp());
+    assert raffle.is_active = 1;  // Ensure the raffle is active
+    assert_le(raffle.end_timestamp, get_block_timestamp());  // Ensure the raffle has ended
 
     if (raffle.total_amount >= raffle.target_amount) {
         let winner = select_winner(raffle_id);
@@ -140,20 +145,12 @@ func end_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
     );
 }
 
-@external
-func set_waffle_token_price{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    price: felt
-) {
-    let (caller) = get_caller_address();
-    assert_only_admin(caller);
-    waffle_token_price.write(price);
-}
-
 // Internal functions
 
 func select_winner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     raffle_id: felt
 ) -> (winner: felt) {
+    // Selects a random winner from the raffle entries
     alloc_locals;
     let (raffle) = raffles.read(raffle_id);
     let (random_number) = get_random_number(raffle_id);
@@ -165,9 +162,8 @@ func select_winner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
 func get_random_number{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     raffle_id: felt
 ) -> (random_number: felt) {
-    // Implement a random number generation algorithm based on the raffle_id and block information
-    // You can use the pedersen hash function or other techniques for randomness
-    // This is a placeholder implementation
+    // Generates a random number based on the raffle ID and block information
+    // This is a placeholder implementation using the pedersen hash function
     let (random_number) = pedersen_hash(raffle_id, get_block_timestamp());
     return (random_number,);
 }
@@ -175,6 +171,7 @@ func get_random_number{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 func get_winner_by_index{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     raffle_id: felt, index: felt
 ) -> (winner: felt) {
+    // Retrieves the winner based on the winning index
     alloc_locals;
     let (local winner) = 0;
     let (local cumulative_entries) = 0;
@@ -210,6 +207,7 @@ func get_winner_by_index{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
 func refund_participants{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     raffle_id: felt
 ) {
+    // Refunds the participants if the target amount is not reached
     let (user_count) = user_entries.keys_len();
     let (users) = user_entries.keys();
 
@@ -219,8 +217,7 @@ func refund_participants{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
 
     let (entry_count) = user_entries.read(user, raffle_id);
     if (entry_count > 0) {
-        let (waffle_price) = waffle_token_price.read();
-        let refund_amount = entry_count * ENTRY_PRICE_IN_USD * waffle_price;
+        let refund_amount = entry_count;  // Refund the $WAFFLE tokens used for entries
 
         // Transfer the refund amount back to the user
         IERC20.transfer(
@@ -241,9 +238,9 @@ func refund_participants{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
 func assert_only_admin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     user: felt
 ) {
-    // Implement the logic to check if the given user is an admin
-    // You can maintain a list of admin addresses or use other access control mechanisms
+    // Asserts that only the admin can perform certain actions
     // This is a placeholder implementation
+    // Implement your own access control mechanism
     assert user = 0x123456789abcdef;
     return ();
 }
