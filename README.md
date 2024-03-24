@@ -1,7 +1,7 @@
 # waffle-raffle
 <h1 align="center">
   <br>
-  <a href="https://github.com/your-username/waffle-raffle"><img src="https://i.imgur.com/your-logo-url.png" alt="Waffle Raffle" width="200"></a>
+  <a href="https://twitter.com/wafflesweep"><img src="https://i.imgur.com/sFmAOBq" alt="Waffle Raffle" width="200"></a>
   <br>
   Waffle Raffle 🧇🎉
   <br>
@@ -36,45 +36,6 @@ Welcome to the Waffle Raffle project! This is an exciting raffle system built on
 - Exciting prizes like luxury cars, high-end electronics, and more
 - Completely random and fair selection of winners
 - Admin panel for creating and managing raffles
-
-## Getting Started 🚀
-
-To get started with Waffle Raffle, follow these steps:
-
-1. Clone the repository:
-git clone https://github.com/your-username/waffle-raffle.git
-
-
-Copy code
-
-2. Install the necessary dependencies:
-cd waffle-raffle
-npm install
-
-
-Copy code
-
-3. Compile the Cairo contract:
-starknet-compile contracts/WaffleRaffle.cairo output/WaffleRaffle.json
-
-
-Copy code
-
-4. Deploy the contract to the STARKNET network:
-starknet deploy --contract output/WaffleRaffle.json --network alpha
-
-
-Copy code
-
-5. Update the contract address in the `config.ts` file.
-
-6. Run the frontend application:
-npm run dev
-
-
-Copy code
-
-7. Open your browser and visit `http://localhost:3000` to start participating in raffles!
 
 ## Smart Contract 📜
 
