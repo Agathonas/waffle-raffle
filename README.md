@@ -1,7 +1,7 @@
 # waffle-raffle
 <h1 align="center">
   <br>
-  <a href="https://twitter.com/wafflesweep"><img src="https://i.imgur.com/sFmAOBq" alt="Waffle Raffle" width="200"></a>
+  <a href="https://twitter.com/wafflesweep"><img src="[https://i.imgur.com/sFmAOBq](https://i.imgur.com/sFmAOBq.png)" alt="Waffle Raffle" width="200"></a>
   <br>
   Waffle Raffle 🧇🎉
   <br>
