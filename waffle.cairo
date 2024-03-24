@@ -1,3 +1,5 @@
+// raffle.cairo
+
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
@@ -7,10 +9,11 @@ from starkware.starknet.common.syscalls import get_block_timestamp, get_caller_a
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.math import assert_le, assert_lt, assert_nn_le, unsigned_div_rem
 from openzeppelin.token.erc20.IERC20 import IERC20
-from contracts.organization import Organization
+from organization import OrganizationContract
 
 // Define constants
 const WAFFLE_TOKEN_ADDRESS = 0x123456789abcdef;
+const MAX_FEE_PERCENTAGE = 30;
 
 // Define the Raffle struct
 struct Raffle {
@@ -20,6 +23,7 @@ struct Raffle {
     target_amount: felt,  // Target amount of $WAFFLE tokens required for the raffle to be successful
     end_timestamp: felt,  // Timestamp when the raffle ends
     is_active: felt,  // Indicates if the raffle is active (1) or closed (0)
+    fee_percentage: felt,  // Percentage fee set by the deployer (0-30%)
 }
 
 // Define storage variables
@@ -38,14 +42,9 @@ func raffle_count() -> (count: felt) {
     // Stores the total count of raffles
 }
 
-@storage_var
-func organization_address() -> (address: felt) {
-    // Stores the address of the Organization contract
-}
-
 // Define events
 @event
-func RaffleCreated(raffle_id: felt, item: felt, target_amount: felt, end_timestamp: felt) {
+func RaffleCreated(raffle_id: felt, item: felt, target_amount: felt, end_timestamp: felt, fee_percentage: felt) {
     // Emitted when a new raffle is created
 }
 
@@ -55,7 +54,7 @@ func RaffleEntered(user_address: felt, raffle_id: felt, entries: felt) {
 }
 
 @event
-func RaffleEnded(raffle_id: felt, winner: felt) {
+func RaffleEnded(raffle_id: felt, winner: felt, fee_amount: felt) {
     // Emitted when a raffle ends and a winner is selected
 }
 
@@ -63,19 +62,21 @@ func RaffleEnded(raffle_id: felt, winner: felt) {
 
 @external
 func create_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    item: felt, target_amount: felt, duration: felt
+    item: felt, target_amount: felt, duration: felt, fee_percentage: felt
 ) {
     // Creates a new raffle
     // Only admin can create a raffle
     let (caller) = get_caller_address();
-    assert_only_admin(caller);
+    OrganizationContract.assert_only_admin(caller);
+
+    assert_nn_le(fee_percentage, MAX_FEE_PERCENTAGE);  // Ensure fee percentage is within the allowed range
 
     let (raffle_id) = raffle_count.read();
     let end_timestamp = get_block_timestamp() + duration;
 
-    raffles.write(raffle_id, Raffle(item, 0, 0, target_amount, end_timestamp, 1));
+    raffles.write(raffle_id, Raffle(item, 0, 0, target_amount, end_timestamp, 1, fee_percentage));
     raffle_count.write(raffle_id + 1);
-    RaffleCreated.emit(raffle_id, item, target_amount, end_timestamp);
+    RaffleCreated.emit(raffle_id, item, target_amount, end_timestamp, fee_percentage);
     return ();
 }
 
@@ -113,7 +114,8 @@ func enter_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
             raffle.total_amount + entry_cost,
             raffle.target_amount,
             raffle.end_timestamp,
-            raffle.is_active
+            raffle.is_active,
+            raffle.fee_percentage
         )
     );
     RaffleEntered.emit(caller, raffle_id, entries);
@@ -125,7 +127,7 @@ func end_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
     // Ends a raffle and selects a winner if the target amount is reached
     // Only admin can end a raffle
     let (caller) = get_caller_address();
-    assert_only_admin(caller);
+    OrganizationContract.assert_only_admin(caller);
 
     let (raffle) = raffles.read(raffle_id);
     assert raffle.is_active = 1;  // Ensure the raffle is active
@@ -133,15 +135,16 @@ func end_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
 
     if (raffle.total_amount >= raffle.target_amount) {
         let winner = select_winner(raffle_id);
-        // Transfer the raffle item to the winner
-        // Implement the logic to transfer the item to the winner
-        RaffleEnded.emit(raffle_id, winner);
+        let fee_amount = raffle.total_amount * raffle.fee_percentage / 100;
+        let prize_amount = raffle.total_amount - fee_amount;
 
-        // Calculate and transfer the fee to the organization
-        let (organization) = organization_address.read();
-        let (fee_percentage) = Organization.get_fee_percentage(organization);
-        let fee_amount = (raffle.total_amount * fee_percentage) / 100;
-        IERC20.transfer(WAFFLE_TOKEN_ADDRESS, organization, fee_amount);
+        // Transfer the fee amount to the organization account
+        OrganizationContract.transfer_fees(fee_amount);
+
+        // Transfer the prize amount to the winner
+        // Implement the logic to transfer the prize amount to the winner
+
+        RaffleEnded.emit(raffle_id, winner, fee_amount);
     } else {
         // Refund the participants if the target amount is not reached
         refund_participants(raffle_id);
@@ -149,20 +152,16 @@ func end_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
 
     raffles.write(
         raffle_id,
-        Raffle(raffle.item, raffle.total_entries, raffle.total_amount, raffle.target_amount, raffle.end_timestamp, 0)
+        Raffle(
+            raffle.item,
+            raffle.total_entries,
+            raffle.total_amount,
+            raffle.target_amount,
+            raffle.end_timestamp,
+            0,
+            raffle.fee_percentage
+        )
     );
-    return ();
-}
-
-@external
-func set_organization_address{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    address: felt
-) {
-    // Sets the address of the Organization contract
-    // Only admin can set the organization address
-    let (caller) = get_caller_address();
-    assert_only_admin(caller);
-    organization_address.write(address);
     return ();
 }
 
@@ -254,15 +253,5 @@ func refund_participants{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
         jump loop;
     }
 
-    return ();
-}
-
-func assert_only_admin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    user: felt
-) {
-    // Asserts that only the admin can perform certain actions
-    // This is a placeholder implementation
-    // Implement your own access control mechanism, such as using OpenZeppelin's AccessControl library
-    assert user = 0x123456789abcdef;
     return ();
 }
