@@ -7,6 +7,8 @@ mod OrganizationContract {
     use traits::Into;
     use traits::TryInto;
     use option::OptionTrait;
+    use zeroable::Zeroable;
+    use starknet::ContractAddressIntoFelt;
 
     // Define constants
     const WAFFLE_TOKEN_ADDRESS: ContractAddress = contract_address_const::<0x123456789abcdef>();
@@ -23,6 +25,7 @@ mod OrganizationContract {
     impl OrganizationImpl {
         fn transfer_fees(ref self: ContractState, amount: u256) {
             // Transfers the fee amount to the organization account
+            assert(!amount.is_zero(), 'Amount must be greater than zero');
             let success = IERC20Dispatcher { contract_address: WAFFLE_TOKEN_ADDRESS }
                 .transfer(self.contract_address, amount);
             assert(success, 'ERC20: transfer failed');
@@ -32,6 +35,7 @@ mod OrganizationContract {
 
         fn withdraw_funds(ref self: ContractState, amount: u256) {
             // Withdraws funds from the organization account to the admin address
+            assert(!amount.is_zero(), 'Amount must be greater than zero');
             let caller = get_caller_address();
             self.assert_only_admin(caller);
             let balance = self.organization_balance.read();
