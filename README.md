@@ -6,11 +6,11 @@
   Waffle Raffle 🧇
   <br>
 </h1>
-  <a href="https://twitter.com/wafflesweep" align="center">TWITTER</h4>
 
 <h4 align="center">Raffle the $WAFFLE // Porsche 911, Audi RS4, Macbook Pro's sweepstakes on STARKNET chain coming soon.</h4>
 
 <p align="center">
+  <a href="https://twitter.com/wafflesweep">Twitter</a>
   <a href="#how-it-works-">How It Works</a> •
   <a href="#features-">Features</a> •
   <a href="#getting-started-">Getting Started</a> •
