@@ -8,7 +8,7 @@
   <br>
 </h1>
 
-<h4 align="center">Raffle the $WAFFLE token and win exciting prizes while supporting charitable causes on the STARKNET chain.</h4>
+<h4 align="center">Raffle the $WAFFLE token and win exciting prizes while supporting charitable causes on the Starknet chain.</h4>
 
 <p align="center">
   <a href="https://twitter.com/wafflesweep">Twitter</a> •
