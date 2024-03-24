@@ -94,4 +94,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-Join the Waffle Raffle today and experience the excitement of participating in secure and transparent raffles while making a positive impact on the world! 🌍✨ Together, we can create a fun and rewarding way to support charitable causes and fund development. Let's make a difference! 🙌🎉
+Join the Waffle Raffle today and experience the excitement of participating in secure and transparent raffles while making a positive impact on the world! 🌍 Together, we can create a fun and rewarding way to support charitable causes and make people happy. 🙌
