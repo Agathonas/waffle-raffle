@@ -20,22 +20,20 @@
 
 ---
 
-Welcome to the Waffle Raffle project! This is an exciting raffle system built on the STARKNET chain using Cairo programming language. With Waffle Raffle, users can participate in raffles and stand a chance to win amazing prizes like Porsche 911, Audi RS4, Macbook Pro, and more! 🏎️💻
-
 ## How it Works 🎲
 
 1. Users can enter raffles by purchasing entries using the $WAFFLE token.
 2. Each raffle has a specific item up for grabs, an entry fee, and a set duration.
-3. Once the raffle duration ends, a winner is randomly selected from the pool of participants.
-4. The lucky winner receives the prize, and the raffle concludes.
+3. Once the raffle duration ends, a winner or multiple winners is randomly selected from the pool of participants.
+4. The lucky winners receives the prize, and the raffle concludes.
 
 ## Features ✨
 
 - Secure and transparent raffle system built on the STARKNET chain
-- Easy participation using the $WAFFLE token
+- Easy participation using the $WAFFLE token [TODO]
 - Exciting prizes like luxury cars, high-end electronics, and more
 - Completely random and fair selection of winners
-- Admin panel for creating and managing raffles
+- Admin panel for creating and managing raffles [TODO]
 
 ## Smart Contract 📜
 
