@@ -15,12 +15,14 @@ from openzeppelin.token.erc20.IERC20 import IERC20
 
 // Define constants
 const WAFFLE_TOKEN_ADDRESS = 0x123456789abcdef;
+const ENTRY_PRICE_IN_USD = 1;
 
 // Define the Raffle struct
 struct Raffle {
     item: felt,
     total_entries: felt,
-    entry_fee: felt,
+    total_amount: felt,
+    target_amount: felt,
     end_timestamp: felt,
     is_active: felt,
 }
@@ -38,9 +40,13 @@ func user_entries(user_address: felt, raffle_id: felt) -> (entries: felt) {
 func raffle_count() -> (count: felt) {
 }
 
+@storage_var
+func waffle_token_price() -> (price: felt) {
+}
+
 // Define events
 @event
-func RaffleCreated(raffle_id: felt, item: felt, entry_fee: felt, end_timestamp: felt) {
+func RaffleCreated(raffle_id: felt, item: felt, target_amount: felt, end_timestamp: felt) {
 }
 
 @event
@@ -55,7 +61,7 @@ func RaffleEnded(raffle_id: felt, winner: felt) {
 
 @external
 func create_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    item: felt, entry_fee: felt, duration: felt
+    item: felt, target_amount: felt, duration: felt
 ) {
     let (caller) = get_caller_address();
     assert_only_admin(caller);
@@ -63,9 +69,9 @@ func create_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
     let (raffle_id) = raffle_count.read();
     let end_timestamp = get_block_timestamp() + duration;
 
-    raffles.write(raffle_id, Raffle(item, 0, entry_fee, end_timestamp, 1));
+    raffles.write(raffle_id, Raffle(item, 0, 0, target_amount, end_timestamp, 1));
     raffle_count.write(raffle_id + 1);
-    RaffleCreated.emit(raffle_id, item, entry_fee, end_timestamp);
+    RaffleCreated.emit(raffle_id, item, target_amount, end_timestamp);
 }
 
 @external
@@ -76,7 +82,9 @@ func enter_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
     assert raffle.is_active = 1;
     assert_le(get_block_timestamp(), raffle.end_timestamp);
 
-    let entry_cost = raffle.entry_fee * entries;
+    let (waffle_price) = waffle_token_price.read();
+    let entry_cost = ENTRY_PRICE_IN_USD * entries * waffle_price;
+
     let (caller) = get_caller_address();
 
     // Transfer $WAFFLE tokens from the caller to the contract
@@ -98,7 +106,8 @@ func enter_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
         Raffle(
             raffle.item,
             raffle.total_entries + entries,
-            raffle.entry_fee,
+            raffle.total_amount + entry_cost,
+            raffle.target_amount,
             raffle.end_timestamp,
             raffle.is_active
         )
@@ -115,15 +124,29 @@ func end_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
     assert raffle.is_active = 1;
     assert_le(raffle.end_timestamp, get_block_timestamp());
 
-    let winner = select_winner(raffle_id);
-    // Transfer the raffle item to the winner
-    // Implement the logic to transfer the item to the winner
+    if (raffle.total_amount >= raffle.target_amount) {
+        let winner = select_winner(raffle_id);
+        // Transfer the raffle item to the winner
+        // Implement the logic to transfer the item to the winner
+        RaffleEnded.emit(raffle_id, winner);
+    } else {
+        // Refund the participants if the target amount is not reached
+        refund_participants(raffle_id);
+    }
 
     raffles.write(
         raffle_id,
-        Raffle(raffle.item, raffle.total_entries, raffle.entry_fee, raffle.end_timestamp, 0)
+        Raffle(raffle.item, raffle.total_entries, raffle.total_amount, raffle.target_amount, raffle.end_timestamp, 0)
     );
-    RaffleEnded.emit(raffle_id, winner);
+}
+
+@external
+func set_waffle_token_price{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    price: felt
+) {
+    let (caller) = get_caller_address();
+    assert_only_admin(caller);
+    waffle_token_price.write(price);
 }
 
 // Internal functions
@@ -135,7 +158,6 @@ func select_winner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
     let (raffle) = raffles.read(raffle_id);
     let (random_number) = get_random_number(raffle_id);
     let (winning_index, _) = unsigned_div_rem(random_number, raffle.total_entries);
-
     let (winner) = get_winner_by_index(raffle_id, winning_index);
     return (winner,);
 }
@@ -183,6 +205,37 @@ func get_winner_by_index{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
 
     assert winner != 0;
     return (winner,);
+}
+
+func refund_participants{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    raffle_id: felt
+) {
+    let (user_count) = user_entries.keys_len();
+    let (users) = user_entries.keys();
+
+    loop:
+    tempvar current_index = 0;
+    tempvar user = users[current_index];
+
+    let (entry_count) = user_entries.read(user, raffle_id);
+    if (entry_count > 0) {
+        let (waffle_price) = waffle_token_price.read();
+        let refund_amount = entry_count * ENTRY_PRICE_IN_USD * waffle_price;
+
+        // Transfer the refund amount back to the user
+        IERC20.transfer(
+            contract_address=WAFFLE_TOKEN_ADDRESS,
+            recipient=user,
+            amount=refund_amount
+        );
+    }
+
+    current_index = current_index + 1;
+    if (current_index < user_count) {
+        jump loop;
+    }
+
+    return ();
 }
 
 func assert_only_admin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
