@@ -77,11 +77,6 @@ We will extract comments from our X.com contest posts to determine airdrop eligi
 
 We are excited to announce the $WAFFLE token, the native utility token of the Waffle Raffle ecosystem. The $WAFFLE token will be used for purchasing raffle entries, paying fees, and participating in governance decisions.
 
-The total supply of $WAFFLE tokens is 1 billion, with the following allocation:
-- 60% for airdrop to the community
-- 20% for liquidity pool
-- 20% for team allocation
-
 The $WAFFLE token will be launched on the Starknet chain, providing fast and secure transactions within the Waffle Raffle ecosystem.
 
 ## Contributing 🤝
