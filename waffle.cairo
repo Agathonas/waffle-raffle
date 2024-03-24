@@ -5,12 +5,7 @@ from starkware.cairo.common.math import assert_nn, split_felt
 from starkware.cairo.common.math_cmp import is_le
 from starkware.starknet.common.syscalls import get_block_timestamp, get_caller_address
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.math import (
-    assert_le,
-    assert_lt,
-    assert_nn_le,
-    unsigned_div_rem,
-)
+from starkware.cairo.common.math import assert_le, assert_lt, assert_nn_le, unsigned_div_rem
 from openzeppelin.token.erc20.IERC20 import IERC20
 
 // Define constants
@@ -75,6 +70,7 @@ func create_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
     raffles.write(raffle_id, Raffle(item, 0, 0, target_amount, end_timestamp, 1));
     raffle_count.write(raffle_id + 1);
     RaffleCreated.emit(raffle_id, item, target_amount, end_timestamp);
+    return ();
 }
 
 @external
@@ -87,14 +83,13 @@ func enter_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
     assert_le(get_block_timestamp(), raffle.end_timestamp);  // Ensure the raffle hasn't ended
 
     let entry_cost = entries;  // Each entry costs 1 $WAFFLE token
-
     let (caller) = get_caller_address();
 
     // Transfer $WAFFLE tokens from the caller to the contract
     let (success) = IERC20.transferFrom(
         contract_address=WAFFLE_TOKEN_ADDRESS,
         sender=caller,
-        recipient=self_address,
+        recipient=self.address,
         amount=entry_cost
     );
     with_attr error_message("ERC20: transfer failed") {
@@ -116,6 +111,7 @@ func enter_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
         )
     );
     RaffleEntered.emit(caller, raffle_id, entries);
+    return ();
 }
 
 @external
@@ -143,6 +139,7 @@ func end_raffle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
         raffle_id,
         Raffle(raffle.item, raffle.total_entries, raffle.total_amount, raffle.target_amount, raffle.end_timestamp, 0)
     );
+    return ();
 }
 
 // Internal functions
@@ -164,6 +161,7 @@ func get_random_number{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 ) -> (random_number: felt) {
     // Generates a random number based on the raffle ID and block information
     // This is a placeholder implementation using the pedersen hash function
+    // Consider using a more secure and fair random number generation method
     let (random_number) = pedersen_hash(raffle_id, get_block_timestamp());
     return (random_number,);
 }
@@ -240,7 +238,7 @@ func assert_only_admin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 ) {
     // Asserts that only the admin can perform certain actions
     // This is a placeholder implementation
-    // Implement your own access control mechanism
+    // Implement your own access control mechanism, such as using OpenZeppelin's AccessControl library
     assert user = 0x123456789abcdef;
     return ();
 }
