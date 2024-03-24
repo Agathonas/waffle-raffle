@@ -31,7 +31,7 @@
 
 ## Features ✨
 
-- Secure and transparent raffle system built on the STARKNET chain
+- Secure and transparent raffle system built on the Starknet chain
 - Easy participation using the $WAFFLE token
 - Exciting prizes like luxury cars, high-end electronics, and more
 - Completely random and fair selection of winners
@@ -44,7 +44,7 @@
 
 The Waffle Raffle smart contract is written in Cairo and provides the core functionality for creating, entering, and concluding raffles. The contract ensures secure and transparent operations, with only authorized admins able to create and manage raffles.
 
-The contract leverages the power of STARKNET's scalability and security, providing a seamless and trustworthy raffle experience for all participants.
+The contract leverages the power of Starknet's scalability and security, providing a seamless and trustworthy raffle experience for all participants.
 
 ### Contract Features
 
