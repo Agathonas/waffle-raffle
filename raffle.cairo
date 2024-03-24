@@ -1,3 +1,4 @@
+
 // raffle.cairo
 #[contract]
 mod Raffle {
@@ -35,8 +36,7 @@ mod Raffle {
     struct Storage {
         raffles: LegacyMap::<u256, Raffle>,
         user_entries: LegacyMap::<(ContractAddress, u256), u256>,
-        raffle_count: u256,
-    }
+        ra    }
 
     // Define events
     #[event]
@@ -52,8 +52,7 @@ mod Raffle {
         raffle_id: u256,
         item: u256,
         target_amount: u256,
-        end_timestamp: u64,
-        fee_percentage: u128,
+        end_timest        fee_percentage: u128,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -82,6 +81,8 @@ mod Raffle {
         ) {
             // Creates a new raffle
             // Only admin can create a raffle
+            assert(!target_amount.is_zero(), 'Target amount must be greater than zero');
+            assert(duration > 0_u64, 'Duration must be greater than zero');
             let caller = get_caller_address();
             OrganizationContract::assert_only_admin(caller);
             assert(fee_percentage <= MAX_FEE_PERCENTAGE, 'Invalid fee percentage');
@@ -111,6 +112,7 @@ mod Raffle {
 
         fn enter_raffle(ref self: ContractState, raffle_id: u256, entries: u256) {
             // Allows users to enter a raffle by purchasing entries with $WAFFLE tokens
+            assert(!entries.is_zero(), 'Entries must be greater than zero');
             let raffle = self.raffles.read(raffle_id);
             assert(raffle.is_active, 'Raffle is not active');
             assert(get_block_timestamp() <= raffle.end_timestamp, 'Raffle has ended');
@@ -156,7 +158,9 @@ mod Raffle {
                 // Transfer the fee amount to the organization account
                 OrganizationContract::transfer_fees(fee_amount);
                 // Transfer the prize amount to the winner
-                // Implement the logic to transfer the prize amount to the winner
+                let success = IERC20Dispatcher { contract_address: WAFFLE_TOKEN_ADDRESS }
+                    .transfer(winner, prize_amount);
+                assert(success, 'ERC20: transfer failed');
                 self.emit(Event::RaffleEnded(RaffleEndedEvent {
                     raffle_id,
                     winner,
@@ -187,6 +191,7 @@ mod Raffle {
         fn select_winner(self: @ContractState, raffle_id: u256) -> ContractAddress {
             // Selects a random winner from the raffle entries
             let raffle = self.raffles.read(raffle_id);
+            assert(raffle.total_entries > 0.into(), 'No entries in the raffle');
             let random_number = self.get_random_number(raffle_id);
             let winning_index = random_number % raffle.total_entries;
             let winner = self.get_winner_by_index(raffle_id, winning_index);
@@ -224,7 +229,9 @@ mod Raffle {
                 if entry_count > 0.into() {
                     let refund_amount = entry_count;
                     // Transfer the refund amount back to the user
-                    IERC20Dispatcher { contract_address: WAFFLE_TOKEN_ADDRESS }.transfer(user, refund_amount);
+                    let success = IERC20Dispatcher { contract_address: WAFFLE_TOKEN_ADDRESS }
+                        .transfer(user, refund_amount);
+                    assert(success, 'ERC20: transfer failed');
                 }
             }
         }
