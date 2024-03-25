@@ -14,7 +14,6 @@ use serde::Serde;
 use organization::OrganizationContract;
 
 
-Copy code
 // Define constants
 const WAFFLE_TOKEN_ADDRESS: ContractAddress = contract_address_const::<0x123456789abcdef>();
 const MAX_FEE_PERCENTAGE: u128 = 30_u128;
