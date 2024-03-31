@@ -1,4 +1,4 @@
-# Waffle Raffle: A Starknet-Powered Fundraising and Giveaways Platform 🧇
+# Waffle Raffle 🧇
 
 <h1 align="center">
   <br>
@@ -23,7 +23,7 @@
 
 ---
 
-Waffle Raffle is an innovative open-source platform designed for fundraising, charitable events, and giveaways, enabling organizations to set up campaigns and engage communities in meaningful ways. Leveraging the Starknet chain, our platform offers a secure, transparent, and decentralized way to organize raffles, raising funds for various causes or simply spreading joy through giveaways. From luxury items to unique experiences, Waffle Raffle makes it easy for anyone to participate and support their favorite causes.
+Waffle Raffle is an open-source platform designed for fundraising, charitable events, and giveaways, enabling organizations to set up campaigns and engage communities in meaningful ways. Leveraging the Starknet chain, our platform offers a secure, transparent, and decentralized way to organize raffles, raising funds for various causes or simply spreading joy through giveaways. From luxury items to unique experiences, Waffle Raffle makes it easy for anyone to participate and support their favorite causes.
 
 ## How it Works 🎲
 
