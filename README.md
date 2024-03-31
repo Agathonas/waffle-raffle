@@ -1,4 +1,4 @@
-# Waffle Raffle 🧇
+# Waffle Raffle: A Starknet-Powered Fundraising and Giveaways Platform 🧇
 
 <h1 align="center">
   <br>
@@ -22,6 +22,8 @@
 </p>
 
 ---
+
+Waffle Raffle is an innovative open-source platform designed for fundraising, charitable events, and giveaways, enabling organizations to set up campaigns and engage communities in meaningful ways. Leveraging the Starknet chain, our platform offers a secure, transparent, and decentralized way to organize raffles, raising funds for various causes or simply spreading joy through giveaways. From luxury items to unique experiences, Waffle Raffle makes it easy for anyone to participate and support their favorite causes.
 
 ## How it Works 🎲
 
@@ -69,9 +71,19 @@ To celebrate the launch of the $WAFFLE token, we are conducting an airdrop for t
 3. Comment on the airdrop announcement tweet with your Starknet address.
 4. Engage with our X.com contest posts by leaving comments.
 
-The airdrop distribution will be based on a Merkle tree, ensuring efficient and secure token allocation. Users can claim their airdrop tokens by providing their Starknet address and the corresponding Merkle proof.
+We will extract comments from our X.com contest posts to determine airdrop eligibility and allocate tokens accordingly.
+
+## Presale 🪙
+
+To celebrate the launch of the $WAFFLE token, we are conducting an airdrop for the community. Users can participate in the airdrop by following these steps:
+
+1. Follow our official Twitter account [@wafflesweep](https://twitter.com/wafflesweep).
+2. Retweet and like the pinned airdrop announcement tweet.
+3. Comment on the airdrop announcement tweet with your Starknet address.
+4. Engage with our X.com contest posts by leaving comments.
 
 We will extract comments from our X.com contest posts to determine airdrop eligibility and allocate tokens accordingly.
+
 
 ## Token Announcement 📣
 
